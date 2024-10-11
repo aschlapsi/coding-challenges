@@ -7,9 +7,16 @@ import (
 
 	"github.com/fiskaly/coding-challenges/signing-service-challenge/crypto"
 	"github.com/fiskaly/coding-challenges/signing-service-challenge/domain"
+	"github.com/google/uuid"
 )
 
 type CreateSignatureDeviceRequest struct {
+	Id        string `json:"id"`
+	Label     string `json:"label"`
+	Algorithm string `json:"algorithm"`
+}
+
+type CreateSignatureDeviceResponse struct {
 	Id        string `json:"id"`
 	Label     string `json:"label"`
 	Algorithm string `json:"algorithm"`
@@ -41,8 +48,15 @@ func (s *Server) SignatureDevice(response http.ResponseWriter, request *http.Req
 		return
 	}
 
+	uuid, err := uuid.NewRandom()
+	if err != nil {
+		log.Printf("Error while generating UUID: %v", err)
+		WriteInternalError(response)
+		return
+	}
+
 	signatureDevice := domain.NewSignatureDevice(
-		createSignatureDeviceRequest.Id,
+		uuid.String(),
 		createSignatureDeviceRequest.Label,
 		signer,
 	)
@@ -55,7 +69,12 @@ func (s *Server) SignatureDevice(response http.ResponseWriter, request *http.Req
 		return
 	}
 
-	WriteAPIResponse(response, http.StatusCreated, nil)
+	createSignatureDeviceResponse := CreateSignatureDeviceResponse{
+		Id:        signatureDevice.Id,
+		Label:     signatureDevice.Label,
+		Algorithm: createSignatureDeviceRequest.Algorithm,
+	}
+	WriteAPIResponse(response, http.StatusCreated, createSignatureDeviceResponse)
 }
 
 type SignDataRequest struct {
