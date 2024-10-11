@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/fiskaly/coding-challenges/signing-service-challenge/domain"
 )
@@ -16,6 +17,7 @@ type SignatureDeviceRepository interface {
 
 type InMemorySignatureDeviceRepository struct {
 	devices map[string]*domain.SignatureDevice
+	rwmu    sync.RWMutex
 }
 
 func NewInMemorySignatureDeviceRepository() *InMemorySignatureDeviceRepository {
@@ -25,6 +27,9 @@ func NewInMemorySignatureDeviceRepository() *InMemorySignatureDeviceRepository {
 }
 
 func (r *InMemorySignatureDeviceRepository) Save(device *domain.SignatureDevice) error {
+	r.rwmu.Lock()
+	defer r.rwmu.Unlock()
+
 	_, ok := r.devices[device.Id]
 	if ok {
 		return ErrDeviceExists
@@ -35,6 +40,9 @@ func (r *InMemorySignatureDeviceRepository) Save(device *domain.SignatureDevice)
 }
 
 func (r *InMemorySignatureDeviceRepository) FindById(id string) (*domain.SignatureDevice, error) {
+	r.rwmu.RLock()
+	defer r.rwmu.RUnlock()
+
 	device, ok := r.devices[id]
 	if !ok {
 		return nil, ErrDeviceNotFound

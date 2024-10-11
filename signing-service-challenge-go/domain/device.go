@@ -3,6 +3,7 @@ package domain
 import (
 	"encoding/base64"
 	"strconv"
+	"sync"
 
 	"github.com/fiskaly/coding-challenges/signing-service-challenge/crypto"
 )
@@ -18,6 +19,7 @@ type SignatureDevice struct {
 	signer            crypto.Signer
 	signature_counter int
 	last_signature    string
+	mu                sync.Mutex
 }
 
 func NewSignatureDevice(id string, label string, signer crypto.Signer) *SignatureDevice {
@@ -29,6 +31,8 @@ func NewSignatureDevice(id string, label string, signer crypto.Signer) *Signatur
 }
 
 func (d *SignatureDevice) Sign(dataToBeSigned string) (*Signature, error) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
 	secured_data := d.getSecuredData(dataToBeSigned)
 	signature, err := d.signer.Sign(secured_data)
 	if err != nil {
