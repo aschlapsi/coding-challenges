@@ -8,11 +8,13 @@ import (
 	"github.com/fiskaly/coding-challenges/signing-service-challenge/crypto"
 )
 
+// Signature represents a signature
 type Signature struct {
 	Signature   string
 	Signed_Data string
 }
 
+// SignatureDevice represents a signature device
 type SignatureDevice struct {
 	Id                string
 	Label             string
@@ -22,6 +24,7 @@ type SignatureDevice struct {
 	mu                sync.Mutex
 }
 
+// NewSignatureDevice creates a new signature device
 func NewSignatureDevice(id string, label string, signer crypto.Signer) *SignatureDevice {
 	return &SignatureDevice{
 		Id:     id,
@@ -30,6 +33,7 @@ func NewSignatureDevice(id string, label string, signer crypto.Signer) *Signatur
 	}
 }
 
+// Sign signs the data
 func (d *SignatureDevice) Sign(dataToBeSigned string) (*Signature, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()

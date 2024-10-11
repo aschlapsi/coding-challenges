@@ -15,6 +15,7 @@ type CreateSignatureDeviceRequest struct {
 	Algorithm string `json:"algorithm"`
 }
 
+// Create a new signature device
 func (s *Server) SignatureDevice(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
 		WriteErrorResponse(response, http.StatusMethodNotAllowed, []string{
@@ -67,6 +68,7 @@ type SignDataResponse struct {
 	SignedData string `json:"signed_data"`
 }
 
+// Sign data with a signature device
 func (s *Server) SignData(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
 		WriteErrorResponse(response, http.StatusMethodNotAllowed, []string{
