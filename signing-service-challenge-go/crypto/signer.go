@@ -9,6 +9,11 @@ import (
 	"errors"
 )
 
+// To add a new algorithm, you need to:
+// 1. Add a new constant for the algorithm.
+// 2. Implement a struct that implements the Signer interface.
+// 3. Extend the factory function to return the new implementation based on the given algorithm.
+
 // ALGORITHM_RSA is a constant for the RSA algorithm.
 const ALGORITHM_RSA = "RSA"
 
