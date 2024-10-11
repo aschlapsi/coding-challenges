@@ -10,6 +10,44 @@ import (
 	"github.com/google/uuid"
 )
 
+// Create a new signature device
+func (s *Server) SignatureDevice(response http.ResponseWriter, request *http.Request) {
+	switch request.Method {
+	case http.MethodGet:
+		s.listSignatureDevices(response, request)
+	case http.MethodPost:
+		s.createSignatureDevice(response, request)
+	default:
+		WriteErrorResponse(response, http.StatusMethodNotAllowed, []string{
+			http.StatusText(http.StatusMethodNotAllowed),
+		})
+	}
+}
+
+type SignatureDevice struct {
+	Id    string `json:"id"`
+	Label string `json:"label"`
+}
+
+func (s *Server) listSignatureDevices(response http.ResponseWriter, _ *http.Request) {
+	signatureDevices, err := s.deviceRepository.FindAll()
+	if err != nil {
+		log.Printf("Error while finding signature devices: %v", err)
+		WriteInternalError(response)
+		return
+	}
+
+	devices := make([]*SignatureDevice, 0)
+	for device := range signatureDevices {
+		devices = append(devices, &SignatureDevice{
+			Id:    signatureDevices[device].Id,
+			Label: signatureDevices[device].Label,
+		})
+	}
+
+	WriteAPIResponse(response, http.StatusOK, devices)
+}
+
 type CreateSignatureDeviceRequest struct {
 	Id        string `json:"id"`
 	Label     string `json:"label"`
@@ -22,15 +60,7 @@ type CreateSignatureDeviceResponse struct {
 	Algorithm string `json:"algorithm"`
 }
 
-// Create a new signature device
-func (s *Server) SignatureDevice(response http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodPost {
-		WriteErrorResponse(response, http.StatusMethodNotAllowed, []string{
-			http.StatusText(http.StatusMethodNotAllowed),
-		})
-		return
-	}
-
+func (s *Server) createSignatureDevice(response http.ResponseWriter, request *http.Request) {
 	var createSignatureDeviceRequest CreateSignatureDeviceRequest
 	err := json.NewDecoder(request.Body).Decode((&createSignatureDeviceRequest))
 	if err != nil {

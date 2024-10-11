@@ -17,6 +17,7 @@ var ErrDeviceNotFound = errors.New("device not found")
 type SignatureDeviceRepository interface {
 	Save(device *domain.SignatureDevice) error
 	FindById(id string) (*domain.SignatureDevice, error)
+	FindAll() ([]*domain.SignatureDevice, error)
 }
 
 // InMemorySignatureDeviceRepository is an in-memory implementation of a signature device repository
@@ -56,4 +57,16 @@ func (r *InMemorySignatureDeviceRepository) FindById(id string) (*domain.Signatu
 		return nil, ErrDeviceNotFound
 	}
 	return device, nil
+}
+
+// FindAll returns all signature devices in the repository
+func (r *InMemorySignatureDeviceRepository) FindAll() ([]*domain.SignatureDevice, error) {
+	r.rwmu.RLock()
+	defer r.rwmu.RUnlock()
+
+	devices := make([]*domain.SignatureDevice, 0, len(r.devices))
+	for _, device := range r.devices {
+		devices = append(devices, device)
+	}
+	return devices, nil
 }
