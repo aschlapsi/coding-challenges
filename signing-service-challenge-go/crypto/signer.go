@@ -6,7 +6,13 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"errors"
 )
+
+const ALGORITHM_RSA = "RSA"
+const ALGORITHM_ECC = "ECC"
+
+var ErrUnknownAlgorithm = errors.New("unknown algorithm")
 
 // Signer defines a contract for different types of signing implementations.
 type Signer interface {
@@ -59,4 +65,25 @@ func (s *ECDSASigner) Sign(dataToBeSigned []byte) ([]byte, error) {
 		return nil, err
 	}
 	return signature, nil
+}
+
+func CreateSigner(algorithm string) (Signer, error) {
+	switch algorithm {
+	case ALGORITHM_RSA:
+		keyGenerator := RSAGenerator{}
+		keyPair, err := keyGenerator.Generate()
+		if err != nil {
+			return nil, err
+		}
+		return NewRSASigner(*keyPair), nil
+	case ALGORITHM_ECC:
+		keyGenerator := ECCGenerator{}
+		keyPair, err := keyGenerator.Generate()
+		if err != nil {
+			return nil, err
+		}
+		return NewECDSASigner(*keyPair), nil
+	default:
+		return nil, ErrUnknownAlgorithm
+	}
 }
